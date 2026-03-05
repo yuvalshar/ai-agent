@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yuval's Agent</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="shell">
+
+    <header>
+      <div class="logo-mark">Agent</div>
+      <span class="logo-text">/ task decomposition</span>
+      <div class="status-dot"><span></span>online</div>
+    </header>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="dot dot-r"></div>
+        <div class="dot dot-y"></div>
+        <div class="dot dot-g"></div>
+        <span class="card-title">yuval's agent — v0.1</span>
+      </div>
+
+      <div class="card-body">
+        <div class="prompt-label">input</div>
+
+        <textarea
+          id="input"
+          placeholder="Describe what you want to accomplish..."
+          rows="5"
+        ></textarea>
+
+        <div class="actions">
+          <span class="hint">returns 3 actionable tasks</span>
+          <button id="run-btn">Run&nbsp;→</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div id="output">
+          <ul class="task-list" id="task-list"></ul>
+          <div class="error-box" id="error-box" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+
+    <footer>gpt-4.1-mini &nbsp;·&nbsp; fastapi backend</footer>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -24,8 +24,9 @@ uvicorn main:app --reload
 | Variable | Required | Description |
 |---|---|---|
 | `OPEN_AI_API_KEY` | Yes | OpenAI API key used by `llm_client.py` to call the model |
+| `DATABASE_URL` | Yes | PostgreSQL connection string, e.g. `postgresql://miniagent:miniagent_password@localhost:5432/miniagent_db` |
 
-The key is loaded via `python-dotenv` (`load_dotenv()` in `main.py`), so you can also place it in a `.env` file in the project root.
+Both are loaded via `python-dotenv` (`load_dotenv()` in `main.py` and `db.py`), so you can place them in a `.env` file in the project root or `backend/`.
 
 ## Architecture
 
@@ -36,9 +37,12 @@ This is an early-stage AI agent prototype with two components:
 - **`main.py`** — FastAPI app entry point. Loads env vars, sets up CORS, defines three endpoints:
   - `GET /` — server status
   - `GET /health` — health check
-  - `POST /agent` — accepts `{"text": "..."}`, delegates to `agent_core`, returns a task list
+  - `POST /agent` — accepts `{"text": "..."}`, delegates to `agent_core`, saves messages to DB, returns a task list
 - **`agent_core.py`** — thin orchestration layer; calls `llm_client.generate_tasks_with_llm()`
 - **`llm_client.py`** — OpenAI client wrapper; sends a prompt to `gpt-4.1-mini` and parses up to 3 task bullets from the response
+- **`DB/db.py`** — SQLAlchemy engine and `SessionLocal` factory; reads `DATABASE_URL` from env
+- **`DB/models.py`** — `Message` model (`id`, `role`, `content`, `created_at`) mapped to the `messages` table
+- **`DB/init_db.py`** — creates all tables; run once with `python -m DB.init_db` from `backend/`
 
 ### Frontend (`frontend/`)
 
@@ -53,4 +57,4 @@ The frontend is a static file opened directly in the browser (no build step). Th
 
 ## Dependencies
 
-No `requirements.txt` — dependencies are managed directly in `.venv`. Key packages: `fastapi`, `uvicorn`, `pydantic`, `openai`, `python-dotenv`.
+No `requirements.txt` — dependencies are managed directly in `.venv`. Key packages: `fastapi`, `uvicorn`, `pydantic`, `openai`, `python-dotenv`, `sqlalchemy`, `psycopg2-binary`.

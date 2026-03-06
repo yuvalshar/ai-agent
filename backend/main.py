@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 load_dotenv()
 
+from llm_client import generate_tasks_with_llm
 from DB.models import Message
 from DB.db import SessionLocal
 

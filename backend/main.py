@@ -1,7 +1,8 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from llm_client import generate_tasks_with_llm
+from DB.models import Message
+from DB.db import SessionLocal
 
 from fastapi import FastAPI
 from pydantic import BaseModel #data structures
@@ -18,6 +19,15 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
+#DataBase (Postgres)
+def save_message(role: str, content: str):
+    db = SessionLocal()
+    try:
+        db.add(Message(role=role, content=content))
+        db.commit()
+    finally:
+        db.close()
+
 class AgentRequest(BaseModel):
     text: str
 
@@ -32,8 +42,10 @@ def health():
 @app.post("/agent")
 def agent(req: AgentRequest):
     text = req.text.strip()
-    return generate_tasks_with_llm(text)
+    save_message("user", text)
 
-
+    result = generate_tasks_with_llm(text)
+    save_message("AI", "\n".join(result.get("tasks", [])))
+    return result
 
     

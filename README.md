@@ -9,7 +9,11 @@ An early-stage AI agent prototype that takes a natural language request and brea
 ├── backend/
 │   ├── main.py          # FastAPI app entry point
 │   ├── agent_core.py    # Orchestration layer
-│   └── llm_client.py    # OpenAI API wrapper
+│   ├── llm_client.py    # OpenAI API wrapper
+│   └── DB/
+│       ├── db.py        # SQLAlchemy engine & session
+│       ├── models.py    # Message model
+│       └── init_db.py   # Table creation script
 ├── frontend/
 │   ├── index.html       # UI
 │   ├── style.css        # Styles
@@ -21,6 +25,7 @@ An early-stage AI agent prototype that takes a natural language request and brea
 
 - Python 3.14
 - An OpenAI API key
+- Docker (for the PostgreSQL database)
 
 ## Setup
 
@@ -28,10 +33,23 @@ An early-stage AI agent prototype that takes a natural language request and brea
 
 2. **Create a `.env` file** in the project root:
    ```
-   OPENAI_API_KEY=your-key-here
+   OPEN_AI_API_KEY=your-key-here
+   DATABASE_URL=postgresql://miniagent:miniagent_password@localhost:5432/miniagent_db
    ```
 
-3. **Activate the virtual environment:**
+3. **Start the database:**
+   ```bash
+   docker-compose up -d
+   ```
+
+4. **Initialize the database tables:**
+   ```bash
+   source .venv/bin/activate
+   cd backend
+   python -m DB.init_db
+   ```
+
+5. **Activate the virtual environment:**
    ```bash
    source .venv/bin/activate
    ```
@@ -85,3 +103,5 @@ Managed directly in `.venv`. Key packages:
 - `pydantic`
 - `openai`
 - `python-dotenv`
+- `sqlalchemy`
+- `psycopg2-binary`

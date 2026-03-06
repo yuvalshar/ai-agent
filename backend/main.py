@@ -1,7 +1,8 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from agent_core import build_tasks
+from llm_client import generate_tasks_with_llm
+
 from fastapi import FastAPI
 from pydantic import BaseModel #data structures
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,7 +13,7 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"]
 )
@@ -30,7 +31,8 @@ def health():
 
 @app.post("/agent")
 def agent(req: AgentRequest):
-    return build_tasks(req.text)
+    text = req.text.strip()
+    return generate_tasks_with_llm(text)
 
 
 

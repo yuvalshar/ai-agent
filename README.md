@@ -8,7 +8,6 @@ An early-stage AI agent prototype that takes a natural language request and brea
 .
 ├── backend/
 │   ├── main.py          # FastAPI app entry point
-│   ├── agent_core.py    # Orchestration layer
 │   ├── llm_client.py    # OpenAI API wrapper
 │   └── DB/
 │       ├── db.py        # SQLAlchemy engine & session

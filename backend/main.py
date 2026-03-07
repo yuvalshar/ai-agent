@@ -40,6 +40,7 @@ def root():
 def health():
     return {"status": "ok"}
 
+#functions
 def check_db():
     try:
         with engine.connect():
@@ -47,11 +48,24 @@ def check_db():
     except Exception as e:
         print(f"[DB Error] Database is unreachable: {e}")
         raise HTTPException(status_code=503, detail="Database is unavailable. Please start the DB and try again.")
+    
+def get_cache_response(user_request: str):
+    db = SessionLocal()
+    try:
+        interaction = db.query(Interaction).filter(Interaction.user_request == user_request).first()
+        return interaction.llm_response if interaction else None
+    finally:
+        db.close()
 
 @app.post("/agent")
-def agent(req: AgentRequest):
+def agent(user_request: AgentRequest):
     check_db()
-    text = req.text.strip()
+    text = user_request.text.strip()
+    cached = get_cache_response(text)
+    if cached:
+        print("[Cache] Returning cached response.")
+        return {"tasks": cached.split("\n")}
+
     result = generate_tasks_with_llm(text)
     save_interaction(text, "\n".join(result.get("tasks", [])))
     return result

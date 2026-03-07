@@ -39,6 +39,7 @@ class TransitionRequest(BaseModel):
     current_task: str
     duration_minutes: int
     next_task: str
+    notes: str = ""
 
 frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
 app.mount("/static", StaticFiles(directory=frontend_path), name="static")
@@ -84,7 +85,7 @@ def agent(user_request: AgentRequest):
 @app.post("/transition")
 def transition(req: TransitionRequest):
     from llm_client import generate_transition_summary
-    summary = generate_transition_summary(req.current_task, req.duration_minutes, req.next_task)
+    summary = generate_transition_summary(req.current_task, req.duration_minutes, req.next_task, req.notes)
     return {"summary": summary}
 
     

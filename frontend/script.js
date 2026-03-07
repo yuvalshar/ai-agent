@@ -41,6 +41,7 @@ const switchNowBtn       = document.getElementById('switch-now-btn');
 const editScheduleBtn    = document.getElementById('edit-schedule-btn');
 const progressRingFill   = document.getElementById('progress-ring-fill');
 const curTaskDisplay     = document.getElementById('current-task-display');
+const sessionNotes       = document.getElementById('session-notes');
 
 // ── Particles ──────────────────────────────────────────
 (function spawnParticles() {
@@ -163,6 +164,8 @@ function startSession(task) {
   curTaskDisplay.textContent = task;
   curTaskDisplay.classList.add('visible');
 
+  sessionNotes.value = '';
+
   document.body.classList.add('focus-mode');
 }
 
@@ -192,6 +195,7 @@ function endSession(log = true) {
 
   curTaskDisplay.textContent = '';
   curTaskDisplay.classList.remove('visible');
+  sessionNotes.value = '';
   document.body.classList.remove('focus-mode');
 
   // Reset ring
@@ -316,15 +320,16 @@ function triggerTransition() {
   document.getElementById('context-summary').textContent = 'Generating summary...';
 
   showScreen('transition-screen');
-  generateContextSummary(task, duration, next.label);
+  const notes = sessionNotes.value.trim();
+  generateContextSummary(task, duration, next.label, notes);
 }
 
-async function generateContextSummary(task, duration, nextTask) {
+async function generateContextSummary(task, duration, nextTask, notes = '') {
   try {
     const res = await fetch('/transition', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ current_task: task, duration_minutes: duration, next_task: nextTask })
+      body: JSON.stringify({ current_task: task, duration_minutes: duration, next_task: nextTask, notes })
     });
     const data = await res.json();
     document.getElementById('context-summary').textContent =

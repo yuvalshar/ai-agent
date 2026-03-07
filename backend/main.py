@@ -2,10 +2,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from llm_client import generate_tasks_with_llm
-from DB.models import Message
-from DB.db import SessionLocal
+from DB.models import Interaction
+from DB.db import SessionLocal, engine
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel #data structures
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -21,10 +21,10 @@ app.add_middleware(
 )
 
 #DataBase (Postgres)
-def save_message(role: str, content: str):
+def save_interaction(user_request: str, llm_response: str):
     db = SessionLocal()
     try:
-        db.add(Message(role=role, content=content))
+        db.add(Interaction(user_request=user_request, llm_response=llm_response))
         db.commit()
     finally:
         db.close()
@@ -40,13 +40,20 @@ def root():
 def health():
     return {"status": "ok"}
 
+def check_db():
+    try:
+        with engine.connect():
+            pass
+    except Exception as e:
+        print(f"[DB Error] Database is unreachable: {e}")
+        raise HTTPException(status_code=503, detail="Database is unavailable. Please start the DB and try again.")
+
 @app.post("/agent")
 def agent(req: AgentRequest):
+    check_db()
     text = req.text.strip()
-    save_message("user", text)
-
     result = generate_tasks_with_llm(text)
-    save_message("AI", "\n".join(result.get("tasks", [])))
+    save_interaction(text, "\n".join(result.get("tasks", [])))
     return result
 
     

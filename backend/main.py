@@ -6,8 +6,11 @@ from DB.models import Interaction
 from DB.db import SessionLocal, engine
 
 from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel #data structures
 from fastapi.middleware.cors import CORSMiddleware
+import os
 
 app = FastAPI()
 
@@ -32,9 +35,12 @@ def save_interaction(user_request: str, llm_response: str):
 class AgentRequest(BaseModel):
     text: str
 
+frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
+app.mount("/static", StaticFiles(directory=frontend_path), name="static")
+
 @app.get("/")
 def root():
-    return {"message": "server is running"}
+    return FileResponse(os.path.join(frontend_path, "index.html"))
 
 @app.get("/health")
 def health():

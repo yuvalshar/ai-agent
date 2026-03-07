@@ -102,6 +102,28 @@ def transition(req: TransitionRequest):
     return {"summary": summary}
 
 
+@app.get("/history")
+def get_history(limit: int = 50):
+    db = SessionLocal()
+    try:
+        rows = (
+            db.query(SessionContext)
+            .order_by(SessionContext.created_at.desc())
+            .limit(limit)
+            .all()
+        )
+        return {"sessions": [
+            {
+                "task_name": r.task_name,
+                "duration_minutes": r.duration_minutes,
+                "created_at": r.created_at.isoformat() if r.created_at else None,
+            }
+            for r in rows
+        ]}
+    finally:
+        db.close()
+
+
 @app.get("/context")
 def get_context(task: str):
     db = SessionLocal()

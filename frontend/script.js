@@ -85,11 +85,28 @@ function addScheduleRow(time = '', label = '') {
   scheduleEntries.appendChild(row);
 }
 
-addScheduleRow('07:00', 'Gym / Workout');
-addScheduleRow('09:00', 'University / Study');
-addScheduleRow('15:00', 'Violin / Piano');
-addScheduleRow('18:00', 'Startup work');
-addScheduleRow('21:00', 'Self-development');
+// ── Schedule persistence ────────────────────────────────
+function saveScheduleToStorage(rows) {
+  localStorage.setItem('flow_schedule', JSON.stringify(rows));
+}
+
+function loadScheduleFromStorage() {
+  try {
+    const saved = localStorage.getItem('flow_schedule');
+    return saved ? JSON.parse(saved) : null;
+  } catch { return null; }
+}
+
+const savedRows = loadScheduleFromStorage();
+if (savedRows && savedRows.length) {
+  savedRows.forEach(r => addScheduleRow(r.time, r.label));
+} else {
+  addScheduleRow('07:00', 'Gym / Workout');
+  addScheduleRow('09:00', 'University / Study');
+  addScheduleRow('15:00', 'Violin / Piano');
+  addScheduleRow('18:00', 'Startup work');
+  addScheduleRow('21:00', 'Self-development');
+}
 
 addSlotBtn.addEventListener('click', () => addScheduleRow());
 
@@ -102,6 +119,7 @@ startBtn.addEventListener('click', () => {
   });
   if (!schedule.length) return;
   schedule.sort((a, b) => a.time.localeCompare(b.time));
+  saveScheduleToStorage(schedule);
   showScreen('dashboard-screen');
   initDashboard();
 });
@@ -111,6 +129,7 @@ function initDashboard() {
   renderTodaySchedule();
   updateNextUp();
   startClock();
+  loadSessionHistory();
 
   focusBtn.addEventListener('click', toggleSession);
   switchNowBtn.addEventListener('click', triggerTransition);
@@ -118,6 +137,38 @@ function initDashboard() {
     endSession(false);
     showScreen('setup-screen');
   });
+}
+
+// ── Session history from DB ─────────────────────────────
+function formatLogDate(isoString) {
+  const date  = new Date(isoString);
+  const today = new Date();
+  const time  = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  if (date.toDateString() === today.toDateString()) return time;
+  return date.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }) + ' · ' + time;
+}
+
+async function loadSessionHistory() {
+  try {
+    const res  = await fetch('/history');
+    const data = await res.json();
+    if (!data.sessions || !data.sessions.length) return;
+
+    const empty = sessionLogEl.querySelector('.log-empty');
+    if (empty) empty.remove();
+
+    data.sessions.forEach(s => {
+      const li = document.createElement('li');
+      li.className = 'log-item log-item-history';
+      li.innerHTML = `
+        <div class="log-item-task">${s.task_name}</div>
+        <div class="log-item-meta">${s.duration_minutes} min · ${formatLogDate(s.created_at)}</div>
+      `;
+      sessionLogEl.appendChild(li);
+    });
+  } catch {
+    // DB might not be running — silently skip history
+  }
 }
 
 function startClock() {

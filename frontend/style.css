@@ -475,6 +475,7 @@ body {
 
 .log-item-task { font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
 .log-item-meta { font-family: var(--fm); font-size: 10px; color: var(--muted); }
+.log-item-history { border-left-color: rgba(255,255,255,0.15); opacity: 0.7; }
 
 /* ── Center column ── */
 .col-center {

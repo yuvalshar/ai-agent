@@ -3,168 +3,191 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Flow — Yuval's Agent</title>
+  <title>Flow</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 
-  <!-- SETUP SCREEN -->
+  <div class="bg-base" aria-hidden="true"></div>
+  <div id="particles" aria-hidden="true"></div>
+
+  <!-- ════════════════════════════════
+       SETUP
+  ════════════════════════════════ -->
   <div id="setup-screen" class="screen active">
-    <div class="shell">
-      <header>
-        <div class="logo-mark">Flow</div>
-        <span class="logo-text">/ context agent</span>
-        <div class="status-dot"><span></span>online</div>
-      </header>
+    <div class="setup-wrap">
 
-      <div class="card" style="max-width:560px">
-        <div class="card-header">
-          <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
-          <span class="card-title">setup — define your week</span>
+      <div class="setup-brand">
+        <div class="wordmark">Flow</div>
+        <p class="wordmark-sub">Your intelligent transition agent</p>
+      </div>
+
+      <div class="card setup-card">
+        <h2 class="setup-heading">Define your week</h2>
+        <p class="setup-body">
+          Tell Flow your schedule once. It watches the clock, manages
+          your transitions, and keeps your context intact.
+        </p>
+
+        <div class="sched-cols">
+          <span>Time</span>
+          <span>Activity</span>
         </div>
-        <div class="card-body">
-          <p class="setup-desc">Tell the agent your weekly schedule once. It will watch the clock and manage your transitions.</p>
 
-          <div id="schedule-entries">
-            <!-- schedule rows injected by JS -->
-          </div>
+        <div id="schedule-entries"></div>
 
-          <button id="add-slot-btn" class="btn-secondary">+ Add time slot</button>
+        <button id="add-slot-btn" class="btn-add-row">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="7" y1="1" x2="7" y2="13"/><line x1="1" y1="7" x2="13" y2="7"/></svg>
+          Add time slot
+        </button>
 
-          <div class="divider" style="margin:28px 0 20px"></div>
-
-          <div class="actions">
-            <span class="hint">you can edit this later</span>
-            <button id="start-btn">Start →</button>
-          </div>
+        <div class="setup-foot">
+          <span class="foot-note">Edit anytime from the dashboard</span>
+          <button id="start-btn" class="btn-cta">Enter Flow</button>
         </div>
       </div>
+
     </div>
   </div>
 
-  <!-- DASHBOARD SCREEN -->
+  <!-- ════════════════════════════════
+       DASHBOARD
+  ════════════════════════════════ -->
   <div id="dashboard-screen" class="screen">
-    <div class="shell">
-      <header>
-        <div class="logo-mark">Flow</div>
-        <span class="logo-text">/ in session</span>
-        <div class="status-dot"><span></span><span id="live-clock"></span></div>
-      </header>
 
-      <div class="dashboard-grid">
+    <div class="dash-body">
 
-        <!-- CURRENT FOCUS -->
-        <div class="card focus-card">
-          <div class="card-header">
-            <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
-            <span class="card-title">current focus</span>
-            <span id="session-timer" class="timer-badge">00:00</span>
-          </div>
-          <div class="card-body">
-            <div class="prompt-label">what are you working on?</div>
-            <textarea id="focus-input" placeholder="e.g. startup backend — auth flow refactor" rows="3"></textarea>
-            <div class="actions" style="margin-top:14px">
-              <span class="hint" id="focus-hint">press start to begin session</span>
-              <button id="focus-btn">Start session →</button>
-            </div>
+      <!-- LEFT — Schedule & Log -->
+      <aside class="col col-left card">
+
+        <p class="col-label">Today</p>
+        <ul id="today-schedule" class="tl"></ul>
+
+        <div class="col-sep"></div>
+
+        <p class="col-label">Log</p>
+        <ul id="session-log" class="log-list">
+          <li class="log-empty">No sessions yet.</li>
+        </ul>
+
+      </aside>
+
+      <!-- CENTER — Focus core -->
+      <main class="col col-center">
+
+        <div class="focus-label-area">
+          <span class="col-label" style="text-align:center">Current Focus</span>
+          <div id="current-task-display" class="cur-task"></div>
+        </div>
+
+        <!-- SVG Ring -->
+        <div class="ring-area">
+          <div class="ring-halo"></div>
+
+          <svg class="ring-svg" viewBox="0 0 220 220" aria-hidden="true">
+            <defs>
+              <linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%"   stop-color="#4F8CFF"/>
+                <stop offset="100%" stop-color="#7C6CFF"/>
+              </linearGradient>
+            </defs>
+            <circle class="ring-track" cx="110" cy="110" r="88"/>
+            <circle id="progress-ring-fill" class="ring-prog" cx="110" cy="110" r="88"/>
+          </svg>
+
+          <div class="ring-center">
+            <span id="session-timer" class="ring-timer">00:00</span>
+            <span class="ring-sub">session</span>
           </div>
         </div>
 
-        <!-- NEXT UP -->
-        <div class="card next-card">
-          <div class="card-header">
-            <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
-            <span class="card-title">next up</span>
+        <!-- Input -->
+        <textarea
+          id="focus-input"
+          class="focus-textarea"
+          placeholder="What are you working on?"
+          rows="2"
+        ></textarea>
+
+        <div class="focus-controls">
+          <span id="focus-hint" class="focus-hint">Ready to begin</span>
+          <button id="focus-btn" class="btn-cta">Start session</button>
+        </div>
+
+      </main>
+
+      <!-- RIGHT — Next Up -->
+      <aside class="col col-right card">
+
+        <p class="col-label">Next up</p>
+
+        <div id="next-item-display" class="next-body">
+          <div class="next-name">—</div>
+          <div class="next-meta">No upcoming blocks</div>
+        </div>
+
+        <div id="countdown-bar-wrap" class="countdown-area" style="display:none">
+          <div class="cd-row">
+            <span id="countdown-text" class="cd-label">TIME REMAINING</span>
+            <span id="countdown-value" class="cd-value">—</span>
           </div>
-          <div class="card-body">
-            <div id="next-item-display" class="next-item">
-              <div class="next-label">—</div>
-              <div class="next-time">no upcoming blocks</div>
-            </div>
-            <div id="countdown-bar-wrap" style="display:none">
-              <div class="countdown-label">
-                <span id="countdown-text">time remaining</span>
-                <span id="countdown-value">—</span>
-              </div>
-              <div class="progress-track">
-                <div id="progress-fill" class="progress-fill"></div>
-              </div>
-            </div>
+          <div class="bar-track">
+            <div id="progress-fill" class="bar-fill"></div>
           </div>
         </div>
 
-        <!-- TODAY'S SCHEDULE -->
-        <div class="card schedule-card">
-          <div class="card-header">
-            <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
-            <span class="card-title">today's blocks</span>
-          </div>
-          <div class="card-body">
-            <ul id="today-schedule" class="block-list"></ul>
-          </div>
-        </div>
+      </aside>
 
-        <!-- CONTEXT LOG -->
-        <div class="card log-card">
-          <div class="card-header">
-            <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
-            <span class="card-title">session log</span>
-          </div>
-          <div class="card-body">
-            <ul id="session-log" class="log-list">
-              <li class="log-empty">No sessions yet today.</li>
-            </ul>
-          </div>
-        </div>
-
-      </div>
-
-      <div class="dashboard-actions">
-        <button id="switch-now-btn" class="btn-secondary" disabled>Switch now</button>
-        <button id="edit-schedule-btn" class="btn-ghost">Edit schedule</button>
-      </div>
     </div>
+
+    <!-- Footer -->
+    <footer class="dash-foot">
+      <button id="switch-now-btn" class="btn-ghost" disabled>Switch now</button>
+      <span id="live-clock" class="clock">--:--:--</span>
+      <button id="edit-schedule-btn" class="btn-ghost">Edit schedule</button>
+    </footer>
+
   </div>
 
-  <!-- TRANSITION SCREEN -->
+  <!-- ════════════════════════════════
+       TRANSITION
+  ════════════════════════════════ -->
   <div id="transition-screen" class="screen">
-    <div class="shell" style="justify-content:center">
-      <div class="card transition-card">
-        <div class="card-header">
-          <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
-          <span class="card-title">time to switch</span>
+    <div class="t-wrap">
+
+      <div class="t-chip">TIME TO SWITCH</div>
+
+      <div class="t-flow">
+        <div class="card t-card">
+          <span class="t-role">Wrapping up</span>
+          <div id="t-from-task" class="t-name">—</div>
+          <div id="t-duration"  class="t-dur">0 min session</div>
         </div>
-        <div class="card-body">
-          <div class="transition-from">
-            <div class="t-label">wrapping up</div>
-            <div id="t-from-task" class="t-value">—</div>
-            <div id="t-duration" class="t-meta">0 min session</div>
-          </div>
 
-          <div class="transition-arrow">↓</div>
+        <div class="t-arrow">
+          <div class="t-arrow-shaft"></div>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,6 8,10 12,6" transform="rotate(180 8 8)"/></svg>
+        </div>
 
-          <div class="transition-to">
-            <div class="t-label">starting next</div>
-            <div id="t-to-task" class="t-value accent">—</div>
-          </div>
-
-          <div class="divider" style="margin:28px 0"></div>
-
-          <div class="context-summary-wrap">
-            <div class="prompt-label">context saved</div>
-            <div id="context-summary" class="context-summary">Generating summary...</div>
-          </div>
-
-          <div class="divider" style="margin:28px 0 20px"></div>
-
-          <div class="actions">
-            <button id="back-btn" class="btn-secondary">Stay in current</button>
-            <button id="confirm-switch-btn">Start next →</button>
-          </div>
+        <div class="card t-card t-card-next">
+          <span class="t-role">Starting next</span>
+          <div id="t-to-task" class="t-name t-name-accent">—</div>
         </div>
       </div>
+
+      <div class="card t-context-card">
+        <span class="t-context-lbl">Context saved by Flow</span>
+        <p id="context-summary" class="t-context-body">Generating summary...</p>
+      </div>
+
+      <div class="t-actions">
+        <button id="back-btn"           class="btn-ghost">← Stay in current</button>
+        <button id="confirm-switch-btn" class="btn-cta">Start next →</button>
+      </div>
+
     </div>
   </div>
 

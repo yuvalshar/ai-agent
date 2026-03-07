@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from llm_client import generate_tasks_with_llm
-from DB.models import Interaction
+from DB.models import Interaction, SessionContext
 from DB.db import SessionLocal, engine
 
 from fastapi import FastAPI, HTTPException
@@ -86,6 +86,42 @@ def agent(user_request: AgentRequest):
 def transition(req: TransitionRequest):
     from llm_client import generate_transition_summary
     summary = generate_transition_summary(req.current_task, req.duration_minutes, req.next_task, req.notes)
+
+    db = SessionLocal()
+    try:
+        db.add(SessionContext(
+            task_name=req.current_task,
+            summary=summary,
+            notes=req.notes,
+            duration_minutes=req.duration_minutes,
+        ))
+        db.commit()
+    finally:
+        db.close()
+
     return {"summary": summary}
+
+
+@app.get("/context")
+def get_context(task: str):
+    db = SessionLocal()
+    try:
+        row = (
+            db.query(SessionContext)
+            .filter(SessionContext.task_name == task)
+            .order_by(SessionContext.created_at.desc())
+            .first()
+        )
+        if not row:
+            return {"context": None}
+        return {
+            "context": {
+                "summary": row.summary,
+                "duration_minutes": row.duration_minutes,
+                "created_at": row.created_at.isoformat() if row.created_at else None,
+            }
+        }
+    finally:
+        db.close()
 
     

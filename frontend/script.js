@@ -42,6 +42,8 @@ const editScheduleBtn    = document.getElementById('edit-schedule-btn');
 const progressRingFill   = document.getElementById('progress-ring-fill');
 const curTaskDisplay     = document.getElementById('current-task-display');
 const sessionNotes       = document.getElementById('session-notes');
+const reentryCard        = document.getElementById('reentry-card');
+const reentrySummary     = document.getElementById('reentry-summary');
 
 // ── Particles ──────────────────────────────────────────
 (function spawnParticles() {
@@ -143,7 +145,7 @@ function toggleSession() {
     if (!task) { focusInput.focus(); return; }
     startSession(task);
   } else {
-    endSession(true);
+    triggerTransition();
   }
 }
 
@@ -167,6 +169,21 @@ function startSession(task) {
   sessionNotes.value = '';
 
   document.body.classList.add('focus-mode');
+
+  fetchReentryContext(task);
+}
+
+async function fetchReentryContext(task) {
+  try {
+    const res  = await fetch(`/context?task=${encodeURIComponent(task)}`);
+    const data = await res.json();
+    if (data.context) {
+      reentrySummary.textContent = data.context.summary;
+      reentryCard.classList.add('visible');
+    }
+  } catch {
+    // silently ignore — re-entry context is non-critical
+  }
 }
 
 function endSession(log = true) {
@@ -196,6 +213,7 @@ function endSession(log = true) {
   curTaskDisplay.textContent = '';
   curTaskDisplay.classList.remove('visible');
   sessionNotes.value = '';
+  reentryCard.classList.remove('visible');
   document.body.classList.remove('focus-mode');
 
   // Reset ring

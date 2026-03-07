@@ -528,6 +528,42 @@ body.focus-mode .col-center::before {
 
 .cur-task.visible { opacity: 1; transform: none; }
 
+/* ── Re-entry context card ── */
+.reentry-card {
+  width: 100%;
+  max-width: 400px;
+  background: rgba(108, 242, 255, 0.04);
+  border: 1px solid rgba(108, 242, 255, 0.15);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: opacity 0.5s ease, max-height 0.5s ease;
+}
+
+.reentry-card.visible {
+  opacity: 1;
+  max-height: 160px;
+}
+
+.reentry-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  margin-bottom: 8px;
+  opacity: 0.7;
+}
+
+.reentry-summary {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
 /* ── Ring ── */
 .ring-area {
   position: relative;

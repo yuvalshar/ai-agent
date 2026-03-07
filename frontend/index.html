@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Flow</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%234F8CFF'/></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -81,6 +82,12 @@
         <div class="focus-label-area">
           <span class="col-label" style="text-align:center">Current Focus</span>
           <div id="current-task-display" class="cur-task"></div>
+        </div>
+
+        <!-- Re-entry context (shown when prior summary exists) -->
+        <div id="reentry-card" class="reentry-card">
+          <span class="reentry-label">Last time</span>
+          <p id="reentry-summary" class="reentry-summary"></p>
         </div>
 
         <!-- SVG Ring -->

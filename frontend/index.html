@@ -3,55 +3,171 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Yuval's Agent</title>
+  <title>Flow — Yuval's Agent</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-  <div class="shell">
 
-    <header>
-      <div class="logo-mark">Agent</div>
-      <span class="logo-text">/ task decomposition</span>
-      <div class="status-dot"><span></span>online</div>
-    </header>
+  <!-- SETUP SCREEN -->
+  <div id="setup-screen" class="screen active">
+    <div class="shell">
+      <header>
+        <div class="logo-mark">Flow</div>
+        <span class="logo-text">/ context agent</span>
+        <div class="status-dot"><span></span>online</div>
+      </header>
 
-    <div class="card">
-      <div class="card-header">
-        <div class="dot dot-r"></div>
-        <div class="dot dot-y"></div>
-        <div class="dot dot-g"></div>
-        <span class="card-title">yuval's agent — v0.1</span>
-      </div>
-
-      <div class="card-body">
-        <div class="prompt-label">input</div>
-
-        <textarea
-          id="input"
-          placeholder="Describe what you want to accomplish..."
-          rows="5"
-        ></textarea>
-
-        <div class="actions">
-          <span class="hint">returns 3 actionable tasks</span>
-          <button id="run-btn">Run&nbsp;→</button>
+      <div class="card" style="max-width:560px">
+        <div class="card-header">
+          <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+          <span class="card-title">setup — define your week</span>
         </div>
+        <div class="card-body">
+          <p class="setup-desc">Tell the agent your weekly schedule once. It will watch the clock and manage your transitions.</p>
 
-        <div class="divider"></div>
+          <div id="schedule-entries">
+            <!-- schedule rows injected by JS -->
+          </div>
 
-        <div id="output">
-          <ul class="task-list" id="task-list"></ul>
-          <div class="error-box" id="error-box" style="display:none"></div>
+          <button id="add-slot-btn" class="btn-secondary">+ Add time slot</button>
+
+          <div class="divider" style="margin:28px 0 20px"></div>
+
+          <div class="actions">
+            <span class="hint">you can edit this later</span>
+            <button id="start-btn">Start →</button>
+          </div>
         </div>
       </div>
     </div>
-
-    <footer>gpt-4.1-mini &nbsp;·&nbsp; fastapi backend</footer>
-
   </div>
 
-  <script src="script.js"></script>
+  <!-- DASHBOARD SCREEN -->
+  <div id="dashboard-screen" class="screen">
+    <div class="shell">
+      <header>
+        <div class="logo-mark">Flow</div>
+        <span class="logo-text">/ in session</span>
+        <div class="status-dot"><span></span><span id="live-clock"></span></div>
+      </header>
+
+      <div class="dashboard-grid">
+
+        <!-- CURRENT FOCUS -->
+        <div class="card focus-card">
+          <div class="card-header">
+            <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+            <span class="card-title">current focus</span>
+            <span id="session-timer" class="timer-badge">00:00</span>
+          </div>
+          <div class="card-body">
+            <div class="prompt-label">what are you working on?</div>
+            <textarea id="focus-input" placeholder="e.g. startup backend — auth flow refactor" rows="3"></textarea>
+            <div class="actions" style="margin-top:14px">
+              <span class="hint" id="focus-hint">press start to begin session</span>
+              <button id="focus-btn">Start session →</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- NEXT UP -->
+        <div class="card next-card">
+          <div class="card-header">
+            <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+            <span class="card-title">next up</span>
+          </div>
+          <div class="card-body">
+            <div id="next-item-display" class="next-item">
+              <div class="next-label">—</div>
+              <div class="next-time">no upcoming blocks</div>
+            </div>
+            <div id="countdown-bar-wrap" style="display:none">
+              <div class="countdown-label">
+                <span id="countdown-text">time remaining</span>
+                <span id="countdown-value">—</span>
+              </div>
+              <div class="progress-track">
+                <div id="progress-fill" class="progress-fill"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TODAY'S SCHEDULE -->
+        <div class="card schedule-card">
+          <div class="card-header">
+            <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+            <span class="card-title">today's blocks</span>
+          </div>
+          <div class="card-body">
+            <ul id="today-schedule" class="block-list"></ul>
+          </div>
+        </div>
+
+        <!-- CONTEXT LOG -->
+        <div class="card log-card">
+          <div class="card-header">
+            <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+            <span class="card-title">session log</span>
+          </div>
+          <div class="card-body">
+            <ul id="session-log" class="log-list">
+              <li class="log-empty">No sessions yet today.</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="dashboard-actions">
+        <button id="switch-now-btn" class="btn-secondary" disabled>Switch now</button>
+        <button id="edit-schedule-btn" class="btn-ghost">Edit schedule</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRANSITION SCREEN -->
+  <div id="transition-screen" class="screen">
+    <div class="shell" style="justify-content:center">
+      <div class="card transition-card">
+        <div class="card-header">
+          <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+          <span class="card-title">time to switch</span>
+        </div>
+        <div class="card-body">
+          <div class="transition-from">
+            <div class="t-label">wrapping up</div>
+            <div id="t-from-task" class="t-value">—</div>
+            <div id="t-duration" class="t-meta">0 min session</div>
+          </div>
+
+          <div class="transition-arrow">↓</div>
+
+          <div class="transition-to">
+            <div class="t-label">starting next</div>
+            <div id="t-to-task" class="t-value accent">—</div>
+          </div>
+
+          <div class="divider" style="margin:28px 0"></div>
+
+          <div class="context-summary-wrap">
+            <div class="prompt-label">context saved</div>
+            <div id="context-summary" class="context-summary">Generating summary...</div>
+          </div>
+
+          <div class="divider" style="margin:28px 0 20px"></div>
+
+          <div class="actions">
+            <button id="back-btn" class="btn-secondary">Stay in current</button>
+            <button id="confirm-switch-btn">Start next →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/script.js"></script>
 </body>
 </html>

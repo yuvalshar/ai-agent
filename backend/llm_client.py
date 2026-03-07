@@ -32,3 +32,24 @@ def generate_tasks_with_llm(user_text: str) -> dict:
     print("model:", getattr(resp, "model", None))
     print("usage:", getattr(resp, "usage", None))
     return {"tasks": tasks}
+
+
+def generate_transition_summary(current_task: str, duration_minutes: int, next_task: str) -> str:
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        return f"Worked on '{current_task}' for {duration_minutes} min. Pick up here when you return."
+
+    client = OpenAI(api_key=api_key)
+
+    prompt = (
+        f"The user just finished a {duration_minutes}-minute work session on: '{current_task}'.\n"
+        f"They are switching to: '{next_task}'.\n\n"
+        "Write a single short paragraph (2-3 sentences) that:\n"
+        "1. Acknowledges what they likely accomplished or were in the middle of\n"
+        "2. Reminds them of a good re-entry point for when they return\n"
+        "3. Is encouraging but brief\n"
+        "Write in second person. Do not use bullet points."
+    )
+
+    resp = client.responses.create(model="gpt-4.1-mini", input=prompt)
+    return resp.output_text.strip()

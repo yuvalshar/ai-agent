@@ -6,8 +6,11 @@ from DB.models import Interaction
 from DB.db import SessionLocal, engine
 
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel #data structures
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel #data structures
+import os
 
 app = FastAPI()
 
@@ -32,9 +35,17 @@ def save_interaction(user_request: str, llm_response: str):
 class AgentRequest(BaseModel):
     text: str
 
+class TransitionRequest(BaseModel):
+    current_task: str
+    duration_minutes: int
+    next_task: str
+
+frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
+app.mount("/static", StaticFiles(directory=frontend_path), name="static")
+
 @app.get("/")
 def root():
-    return {"message": "server is running"}
+    return FileResponse(os.path.join(frontend_path, "index.html"))
 
 @app.get("/health")
 def health():
@@ -69,5 +80,11 @@ def agent(user_request: AgentRequest):
     result = generate_tasks_with_llm(text)
     save_interaction(text, "\n".join(result.get("tasks", [])))
     return result
+
+@app.post("/transition")
+def transition(req: TransitionRequest):
+    from llm_client import generate_transition_summary
+    summary = generate_transition_summary(req.current_task, req.duration_minutes, req.next_task)
+    return {"summary": summary}
 
     

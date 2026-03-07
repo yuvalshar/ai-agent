@@ -102,6 +102,40 @@ def transition(req: TransitionRequest):
     return {"summary": summary}
 
 
+@app.get("/weekly")
+def get_weekly():
+    from datetime import datetime, timedelta, timezone
+    from collections import defaultdict
+    db = SessionLocal()
+    try:
+        since = datetime.now(timezone.utc) - timedelta(days=7)
+        rows = (
+            db.query(SessionContext)
+            .filter(SessionContext.created_at >= since)
+            .order_by(SessionContext.created_at.desc())
+            .all()
+        )
+        days = defaultdict(lambda: defaultdict(int))
+        for r in rows:
+            day = r.created_at.strftime('%Y-%m-%d')
+            days[day][r.task_name] += r.duration_minutes
+
+        result = []
+        for day in sorted(days.keys(), reverse=True):
+            tasks = [
+                {"task": t, "minutes": m}
+                for t, m in sorted(days[day].items(), key=lambda x: -x[1])
+            ]
+            result.append({
+                "date": day,
+                "total_minutes": sum(t["minutes"] for t in tasks),
+                "tasks": tasks,
+            })
+        return {"days": result}
+    finally:
+        db.close()
+
+
 @app.get("/history")
 def get_history(limit: int = 50):
     db = SessionLocal()

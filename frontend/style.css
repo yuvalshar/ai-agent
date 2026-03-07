@@ -863,6 +863,119 @@ body.focus-mode .col-right {
   font-variant-numeric: tabular-nums;
 }
 
+.foot-right { display: flex; gap: 10px; }
+
+/* ── Weekly modal ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(11,15,26,0.75);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.28s ease;
+}
+
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 520px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  padding: 32px 36px;
+  animation: tIn 0.3s ease both;
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border-hi);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 18px;
+  cursor: pointer;
+  transition: color 0.18s, background 0.18s;
+}
+
+.modal-close:hover { color: var(--text); background: var(--surface-hi); }
+
+.weekly-content {
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.weekly-loading { font-size: 13px; color: var(--dim); }
+.weekly-empty   { font-size: 13px; color: var(--dim); }
+
+.week-day { display: flex; flex-direction: column; gap: 10px; }
+
+.week-day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.week-day-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.week-day-total {
+  font-family: var(--fm);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.week-task {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.03);
+}
+
+.week-task-name { font-size: 13px; color: var(--muted); }
+.week-task-mins {
+  font-family: var(--fm);
+  font-size: 11px;
+  color: var(--dim);
+}
+
 /* ╔══════════════════════════════════════════════════╗
    ║  TRANSITION SCREEN                               ║
    ╚══════════════════════════════════════════════════╝ */

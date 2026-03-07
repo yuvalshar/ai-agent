@@ -162,9 +162,27 @@
     <footer class="dash-foot">
       <button id="switch-now-btn" class="btn-ghost" disabled>Switch now</button>
       <span id="live-clock" class="clock">--:--:--</span>
-      <button id="edit-schedule-btn" class="btn-ghost">Edit schedule</button>
+      <div class="foot-right">
+        <button id="weekly-btn" class="btn-ghost">This week</button>
+        <button id="edit-schedule-btn" class="btn-ghost">Edit schedule</button>
+      </div>
     </footer>
 
+  </div>
+
+  <!-- ════════════════════════════════
+       WEEKLY MODAL
+  ════════════════════════════════ -->
+  <div id="weekly-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card card">
+      <div class="modal-head">
+        <span class="modal-title">This week</span>
+        <button id="weekly-close-btn" class="modal-close">×</button>
+      </div>
+      <div id="weekly-content" class="weekly-content">
+        <p class="weekly-loading">Loading...</p>
+      </div>
+    </div>
   </div>
 
   <!-- ════════════════════════════════

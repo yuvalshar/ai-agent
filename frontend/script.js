@@ -130,6 +130,7 @@ function initDashboard() {
   updateNextUp();
   startClock();
   loadSessionHistory();
+  requestNotificationPermission();
 
   focusBtn.addEventListener('click', toggleSession);
   switchNowBtn.addEventListener('click', triggerTransition);
@@ -137,6 +138,123 @@ function initDashboard() {
     endSession(false);
     showScreen('setup-screen');
   });
+  document.getElementById('weekly-btn').addEventListener('click', openWeekly);
+  document.getElementById('weekly-close-btn').addEventListener('click', closeWeekly);
+  document.getElementById('weekly-modal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeWeekly();
+  });
+}
+
+// ── Browser notifications ───────────────────────────────
+function requestNotificationPermission() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+function sendNotification(title, body) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification(title, { body, silent: false });
+  }
+}
+
+// ── Transition sound (Web Audio API) ───────────────────
+function playChime(type = 'warn') {
+  try {
+    const ctx  = new (window.AudioContext || window.webkitAudioContext)();
+    const freqs = type === 'warn' ? [440, 554] : [528, 660, 784];
+    let offset = 0;
+    freqs.forEach(freq => {
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0, ctx.currentTime + offset);
+      gain.gain.linearRampToValueAtTime(0.12, ctx.currentTime + offset + 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + offset + 0.7);
+      osc.start(ctx.currentTime + offset);
+      osc.stop(ctx.currentTime + offset + 0.7);
+      offset += 0.18;
+    });
+  } catch { /* audio not supported */ }
+}
+
+// ── Keyboard shortcuts ──────────────────────────────────
+document.addEventListener('keydown', e => {
+  // Cmd/Ctrl + Enter — toggle session
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+    e.preventDefault();
+    if (document.getElementById('dashboard-screen').classList.contains('active')) {
+      toggleSession();
+    }
+  }
+  // Esc — dismiss transition screen
+  if (e.key === 'Escape') {
+    if (document.getElementById('transition-screen').classList.contains('active')) {
+      showScreen('dashboard-screen');
+      transitionFired = false;
+    }
+    closeWeekly();
+  }
+});
+
+// ── Weekly view ─────────────────────────────────────────
+function openWeekly() {
+  const modal = document.getElementById('weekly-modal');
+  modal.classList.add('open');
+  modal.removeAttribute('aria-hidden');
+  fetchWeekly();
+}
+
+function closeWeekly() {
+  const modal = document.getElementById('weekly-modal');
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+}
+
+function fmtMins(m) {
+  if (m < 60) return `${m}m`;
+  return `${Math.floor(m / 60)}h ${m % 60}m`;
+}
+
+function formatWeekDay(dateStr) {
+  const date  = new Date(dateStr + 'T12:00:00');
+  const today = new Date();
+  const yest  = new Date(today); yest.setDate(today.getDate() - 1);
+  if (date.toDateString() === today.toDateString()) return 'Today';
+  if (date.toDateString() === yest.toDateString())  return 'Yesterday';
+  return date.toLocaleDateString('en-GB', { weekday: 'long', month: 'short', day: 'numeric' });
+}
+
+async function fetchWeekly() {
+  const el = document.getElementById('weekly-content');
+  el.innerHTML = '<p class="weekly-loading">Loading...</p>';
+  try {
+    const res  = await fetch('/weekly');
+    const data = await res.json();
+    if (!data.days || !data.days.length) {
+      el.innerHTML = '<p class="weekly-empty">No sessions this week yet.</p>';
+      return;
+    }
+    el.innerHTML = data.days.map(day => `
+      <div class="week-day">
+        <div class="week-day-header">
+          <span class="week-day-name">${formatWeekDay(day.date)}</span>
+          <span class="week-day-total">${fmtMins(day.total_minutes)} total</span>
+        </div>
+        ${day.tasks.map(t => `
+          <div class="week-task">
+            <span class="week-task-name">${t.task}</span>
+            <span class="week-task-mins">${fmtMins(t.minutes)}</span>
+          </div>
+        `).join('')}
+      </div>
+    `).join('');
+  } catch {
+    el.innerHTML = '<p class="weekly-empty">Could not load data — is the server running?</p>';
+  }
 }
 
 // ── Session history from DB ─────────────────────────────
@@ -369,10 +487,14 @@ function checkTransitionWarning() {
     warningFired = true;
     sessionTimer.classList.add('warning');
     focusHint.textContent = `${WARN_MINUTES} min until ${next.label} — start wrapping up`;
+    playChime('warn');
+    sendNotification('Flow — Time to wrap up', `${next.label} starts in ${WARN_MINUTES} min.`);
   }
 
   if (remaining <= 0 && !transitionFired && sessionActive) {
     transitionFired = true;
+    playChime('transition');
+    sendNotification('Flow — Time to switch', `Starting ${next.label} now.`);
     triggerTransition();
   }
 }

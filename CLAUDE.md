@@ -9,7 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 source .venv/bin/activate
 
 # Set the OpenAI API key (required)
-export OPEN_AI_API_KEY=your-key-here
+export OPENAI_API_KEY=your-key-here
 
 # Start the FastAPI server from inside the backend/ directory
 cd backend
